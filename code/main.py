@@ -1,12 +1,10 @@
-from datetime import date, time, datetime
+from backend import check_date
 
 def main():
-    food_expiry_date = "04/06/2025"
-    expiry_date = datetime.strptime(food_expiry_date, "%d/%m/%Y").date() #converts date strings to actual dates
-    current_date = date.today()
-    
-    if current_date == expiry_date:
-        print(f"XXXX Food has expired today: {current_date}")
+    user_item = input("Enter Item Name: ")
+    item_date = input("Enter Items Expiration Date:")
+    print(check_date(user_item,item_date))
+        
 
 if __name__ == "__main__":
     main()
