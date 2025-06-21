@@ -2,19 +2,31 @@ from datetime import date, datetime
 import sqlite3
 
 # Should be running in the background
-def check_date(item_name, expiry_date):
+def check_date():
+    connection = sqlite3.connect("items.db")
+    cursor = connection.cursor()
+    
+    cursor.execute("SELECT item_name, expiry_date from items")
+    items = cursor.fetchall()
+    
     current_date = date.today()
+    db_items = []
     
-    store_items(item_name, current_date, expiry_date)
-    
-    if current_date == expiry_date:
-        return(f"{item_name} Food has expired today: {current_date}")
-    
-    elif current_date > expiry_date:
-        return(f"{item_name} Food has expired on {expiry_date}")
-    
-    else:
-        return(f"{item_name} is safe until {expiry_date}")
+    for item, expiry in items:
+        expiry_date = datetime.strptime(expiry, "%Y-%m-%d").date()
+        
+        if current_date == expiry_date:
+            db_items.append(f"{item} Food has expired today: {current_date}")
+        
+        elif current_date > expiry_date:
+            db_items.append(f"{item} Food has expired on {expiry_date}")
+        
+        else:
+            db_items.append(f"{item} is safe until {expiry_date}")
+            
+    connection.close()
+        
+    return "\n".join(db_items)
     
     
 def store_items(item_name, expiry_date):
@@ -27,8 +39,6 @@ def store_items(item_name, expiry_date):
     
     connection = sqlite3.connect("items.db")
     cursor = connection.cursor()
-    
-    #storing_item = 
     
     cursor.execute("""CREATE TABLE IF NOT EXISTS items(
         item_id INTEGER PRIMARY KEY,
@@ -51,7 +61,7 @@ def show_items():
     connection = sqlite3.connect("items.db")
     cursor = connection.cursor()
     
-    cursor.execute("SELECT item_name, expiry_date FROM items")
+    cursor.execute("SELECT item_name, date_stored, expiry_date FROM items")
     item_row = cursor.fetchall()
     
     connection.close()
@@ -61,7 +71,18 @@ def show_items():
     
     items_list = "Stored item:\n"
     
-    for item_name, expiry_date in item_row:
-        items_list += f"{item_name}: Expires on {expiry_date}\n"
+    for item_name, date_stored, expiry_date in item_row:
+        items_list += f"{item_name}: Date Stored on {date_stored} - Expires on {expiry_date}\n"
         
     return items_list
+
+
+def delete_item(item_name):
+    connection = sqlite3.connect("items.db")
+    cursor = connection.cursor()
+    
+    cursor.execute("DELETE FROM items WHERE item_name = ?", (item_name,))
+    connection.commit()
+    
+    connection.close()
+    
