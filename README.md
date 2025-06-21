@@ -6,8 +6,8 @@ An app that notifies its user about their expired goods that has an expiration d
 - User will get notification about the expiration date.
 
 ## To Do
-- Store data in a local data base or a server.
-- Implement a registration system.
-- Send notification to a users.
-- Users are able to view their list of goods.
-- Use Streamlit for the frontend.
+✅  Store data in a local data base or a server.<br>
+✅  Users are able to view their list of goods. <br>
+❌ Implement a registration system. <br>
+❌ Send notification to a users. <br>
+❌ Use Streamlit for the frontend. <br>
