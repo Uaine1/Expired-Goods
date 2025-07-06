@@ -5,28 +5,26 @@ import sqlite3
 def check_date():
     connection = sqlite3.connect("items.db")
     cursor = connection.cursor()
-    
-    cursor.execute("SELECT item_name, expiry_date from items")
+
+    cursor.execute("SELECT item_name, expiry_date FROM items")
     items = cursor.fetchall()
-    
+
     current_date = date.today()
-    db_items = []
-    
+    expired_items = []
+
     for item, expiry in items:
         expiry_date = datetime.strptime(expiry, "%Y-%m-%d").date()
-        
-        if current_date == expiry_date:
-            db_items.append(f"{item} Food has expired today: {current_date}")
-        
-        elif current_date > expiry_date:
-            db_items.append(f"{item} Food has expired on {expiry_date}")
-        
-        else:
-            db_items.append(f"{item} is safe until {expiry_date}")
-            
+
+        if current_date >= expiry_date:
+            status = "Expired" if current_date > expiry_date else "Expires Today"
+            expired_items.append({
+                "Item Name": item,
+                "Expiry Date": expiry_date.isoformat(),
+                "Status": status
+            })
+
     connection.close()
-        
-    return "\n".join(db_items)
+    return expired_items
     
     
 def store_items(item_name, expiry_date):
@@ -60,21 +58,15 @@ def store_items(item_name, expiry_date):
 def show_items():
     connection = sqlite3.connect("items.db")
     cursor = connection.cursor()
-    
     cursor.execute("SELECT item_name, date_stored, expiry_date FROM items")
-    item_row = cursor.fetchall()
-    
+    rows = cursor.fetchall()
     connection.close()
-    
-    if not item_row:
-        return "No items found"
-    
-    items_list = "Stored item:\n"
-    
-    for item_name, date_stored, expiry_date in item_row:
-        items_list += f"{item_name}: Date Stored on {date_stored} - Expires on {expiry_date}\n"
-        
-    return items_list
+
+    # Ensure we return a list of dicts
+    return [
+        {"Item Name": row[0], "Date Stored": row[1], "Expiry Date": row[2]}
+        for row in rows
+    ]
 
 
 def delete_item(item_name):
@@ -83,6 +75,9 @@ def delete_item(item_name):
     
     cursor.execute("DELETE FROM items WHERE item_name = ?", (item_name,))
     connection.commit()
-    
+
+    rows_deleted = cursor.rowcount  
     connection.close()
-    
+
+    return rows_deleted > 0  
+
